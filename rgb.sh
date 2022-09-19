@@ -1,15 +1,12 @@
 #!/bin/bash
 
-color_r=(50000 150000 150000 250000 100000)
-color_g=(70000 150000 70000  50000  1)
-color_b=(90000 100000 150000 10000  250000)
-
+color=(ffffff ff00ff 00ffff ffff00)
 function_rgbinit()
 {
 for i in 0 1 2
 do
     echo 0 > /sys/class/pwm/pwmchip${i}/export
-    echo 256000 > /sys/class/pwm/pwmchip${i}/pwm0/period
+    echo 255000 > /sys/class/pwm/pwmchip${i}/pwm0/period
     echo normal  > /sys/class/pwm/pwmchip${i}/pwm0/polarity
     echo 0 > /sys/class/pwm/pwmchip${i}/pwm0/duty_cycle
     echo 1 > /sys/class/pwm/pwmchip${i}/pwm0/enable
@@ -21,16 +18,67 @@ if [ ! -d "$path" ]; then
     function_rgbinit
 fi
 
+function_colorful(){
+
+while true ;
+do
+
+    local r=255
+    local g=0
+    local b=1
+    for ((i=0;i<255;i++))
+        do
+        let r=$r-1
+        let g=$g+1
+        echo `expr ${r} \* 1000`  > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+        echo `expr ${g} \* 1000`  > /sys/class/pwm/pwmchip1/pwm0/duty_cycle
+        echo `expr ${b} \* 1000`  > /sys/class/pwm/pwmchip2/pwm0/duty_cycle
+        
+        done
+    r=1
+    g=255
+    b=0
+    for ((i=0;i<255;i++))
+        do
+        let g=$g-1
+        let b=$b+1
+        echo `expr ${r} \* 1000`  > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+        echo `expr ${g} \* 1000`  > /sys/class/pwm/pwmchip1/pwm0/duty_cycle
+        echo `expr ${b} \* 1000`  > /sys/class/pwm/pwmchip2/pwm0/duty_cycle
+        done
+
+    r=0
+    g=1
+    b=255
+    for ((i=0;i<255;i++))
+        do
+        let r=$r+1
+        let b=$b-1
+        echo `expr ${r} \* 1000`  > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+        echo `expr ${g} \* 1000`  > /sys/class/pwm/pwmchip1/pwm0/duty_cycle
+        echo `expr ${b} \* 1000`  > /sys/class/pwm/pwmchip2/pwm0/duty_cycle
+        
+        done
+done
+
+}
+
 function_blink()
 {
 while true ;
 do
-    for ((i=0;i<${#color_r[*]};i++)) 
-        do 
-        echo $i 
-        echo ${color_r[$i]}  > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
-        echo ${color_g[$i]} > /sys/class/pwm/pwmchip1/pwm0/duty_cycle
-        echo ${color_b[$i]} > /sys/class/pwm/pwmchip2/pwm0/duty_cycle
+
+    for ((i=0;i<${#color[*]};i++)) 
+        do
+        r=`echo ${color[$i]:0:2}`
+        g=`echo ${color[$i]:2:2}`
+        b=`echo ${color[$i]:4:2}`
+        r=`echo $((16#$r))`
+        g=`echo $((16#$g))`
+        b=`echo $((16#$b))`
+        echo `expr ${r} \* 1000`  > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+        echo `expr ${g} \* 1000` > /sys/class/pwm/pwmchip1/pwm0/duty_cycle
+        echo `expr ${b} \* 1000` > /sys/class/pwm/pwmchip2/pwm0/duty_cycle
         sleep 1
   done
 done
@@ -68,8 +116,11 @@ blink)
 rgb_breathe)
     rgb_breathe
     ;;
+colorful)
+    function_colorful
+    ;;
 *)
-        echo "Usage: $0 {blink|rgb_breathe}"
+        echo "Usage: $0 {blink|rgb_breathe|colorful}"
         exit 1
 esac
 

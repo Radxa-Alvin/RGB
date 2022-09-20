@@ -1,7 +1,10 @@
 #!/bin/bash
 
+echo "Start Radxa E25 RGB"
+
 color=(ffffff ff00ff 00ffff ffff00)
-function_rgbinit()
+
+rgbinit()
 {
 for i in 0 1 2
 do
@@ -13,12 +16,7 @@ do
 done
 }
 
-path="/sys/class/pwm/pwmchip0/pwm0"
-if [ ! -d "$path" ]; then
-    function_rgbinit
-fi
-
-function_colorful(){
+colorful(){
 
 while true ;
 do
@@ -33,7 +31,6 @@ do
         echo `expr ${r} \* 1000`  > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
         echo `expr ${g} \* 1000`  > /sys/class/pwm/pwmchip1/pwm0/duty_cycle
         echo `expr ${b} \* 1000`  > /sys/class/pwm/pwmchip2/pwm0/duty_cycle
-        
         done
     r=1
     g=255
@@ -57,13 +54,12 @@ do
         echo `expr ${r} \* 1000`  > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
         echo `expr ${g} \* 1000`  > /sys/class/pwm/pwmchip1/pwm0/duty_cycle
         echo `expr ${b} \* 1000`  > /sys/class/pwm/pwmchip2/pwm0/duty_cycle
-        
         done
 done
 
 }
 
-function_blink()
+blink()
 {
 while true ;
 do
@@ -107,17 +103,29 @@ do
 done
 done
 }
+none(){
+    echo 0  > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+    echo 0 > /sys/class/pwm/pwmchip1/pwm0/duty_cycle
+    echo 0 > /sys/class/pwm/pwmchip2/pwm0/duty_cycle
+}
+path="/sys/class/pwm/pwmchip0/pwm0"
+if [ ! -d "$path" ]; then
+    rgbinit
+fi
 
 case "$1" in
 
 blink)
-    function_blink
+    blink
     ;;
 rgb_breathe)
     rgb_breathe
     ;;
 colorful)
-    function_colorful
+    colorful
+    ;;
+none)
+    none
     ;;
 *)
         echo "Usage: $0 {blink|rgb_breathe|colorful}"
